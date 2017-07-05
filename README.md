@@ -42,17 +42,17 @@ Bi-LSTM/Bi-GRU + CRF.
     num_layers: bilstm/bigru层数；
     use_crf: 是否使用crf层；
     rnn_unit: lstm or gru，模型中使用哪种单元；
-	learning_rate: 学习率；
-	dev_size: 训练集中划分出的开发集的比例，shuffle之后再划分；
-	dropout_rate: bilstm/bigru输出与全连接层之间；
-	l2_rate: 加在全连接层权重上；
-	nb_classes: 标签数（preprocessing.py输出结果上+1）;
-	sequence_length: 句子最大长度（preprocessing.py输出结果中有句子分布）；
-	batch_size: batch size；
-	nb_epoch: 迭代次数；
-	max_patience: 最大耐心值，即在开发集上的表现累计max_patience次没有提升时，训练即终止；
-	path_model: 模型存放路径；
-	some other parameters...
+    learning_rate: 学习率；
+    dev_size: 训练集中划分出的开发集的比例，shuffle之后再划分；
+    dropout_rate: bilstm/bigru输出与全连接层之间；
+    l2_rate: 加在全连接层权重上；
+    nb_classes: 标签数（preprocessing.py输出结果上+1）;
+    sequence_length: 句子最大长度（preprocessing.py输出结果中有句子分布）；
+    batch_size: batch size；
+    nb_epoch: 迭代次数；
+    max_patience: 最大耐心值，即在开发集上的表现累计max_patience次没有提升时，训练即终止；
+    path_model: 模型存放路径；
+    some other parameters...
 
 ## 3. Reference
 - 参考论文：[http://www.aclweb.org/anthology/N16-1030](http://www.aclweb.org/anthology/N16-1030 "http://www.aclweb.org/anthology/N16-1030")
