@@ -56,7 +56,15 @@ Bi-LSTM/Bi-GRU + CRF.
     some other parameters...
 ```
 
-## 3. Reference
+## 3. Requirements
+- python3
+- numpy
+- tensorflow 1.2
+- pickle
+- tqdm
+- yaml
+
+## 4. Reference
 - 参考论文：[http://www.aclweb.org/anthology/N16-1030](http://www.aclweb.org/anthology/N16-1030 "http://www.aclweb.org/anthology/N16-1030")
 - 参考项目：[https://github.com/koth/kcws](https://github.com/koth/kcws "https://github.com/koth/kcws") ; [https://github.com/chilynn/sequence-labeling](https://github.com/chilynn/sequence-labeling "https://github.com/chilynn/sequence-labeling")
 
