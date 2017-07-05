@@ -38,6 +38,7 @@ Bi-LSTM/Bi-GRU + CRF.
 - model_params/bilstm_params:
 
 
+```python
     num_units: bilstm/bigru单元数，默认256;
     num_layers: bilstm/bigru层数；
     use_crf: 是否使用crf层；
@@ -53,6 +54,7 @@ Bi-LSTM/Bi-GRU + CRF.
     max_patience: 最大耐心值，即在开发集上的表现累计max_patience次没有提升时，训练即终止；
     path_model: 模型存放路径；
     some other parameters...
+```
 
 ## 3. Reference
 - 参考论文：[http://www.aclweb.org/anthology/N16-1030](http://www.aclweb.org/anthology/N16-1030 "http://www.aclweb.org/anthology/N16-1030")
