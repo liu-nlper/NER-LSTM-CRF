@@ -1,0 +1,44 @@
+model: NER
+model_params:
+    bilstm_params:
+        num_units: 256
+        # num layers暂时只能设置成1
+        num_layers: 1
+    feature_names: ['f1', 'f2']
+    embed_params:
+        f1:
+            dropout_rate: 0.3
+            shape: [220, 64]
+            path_pre_train: './data/embedding.txt'
+            path: './Res/embed/char_embed.pkl'
+        f2:
+            dropout_rate: 0.3
+            shape: [5, 32]
+            path_pre_train: null
+            path: null
+    use_crf: True
+    rnn_unit: 'lstm'  # 'lstm' or 'gru'
+    learning_rate: 0.002
+    dev_size: 0.1
+    dropout_rate: 0.5
+    l2_rate: 0.01
+    nb_classes: 12
+    sequence_length: 200
+    batch_size: 64
+    nb_epoch: 200
+    max_patience: 20
+    path_model: './Model/best_model'
+data_params:
+    voc_params:
+        f1:
+            min_count: 0
+            path: './Res/voc/f1.voc.pkl'
+        f2:
+            min_count: 0
+            path: './Res/voc/f2.voc.pkl'
+        label:
+            min_count: 0
+            path: './Res/voc/label.voc.pkl'
+    path_train: './data/sample_train.txt'
+    path_test: './data/sample_test.txt'
+    path_result: './data/sample_test_result.txt'
