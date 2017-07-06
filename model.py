@@ -162,9 +162,6 @@ class SequenceLabelingModel(object):
 
         # train op
         optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
-        # 还有这种操作...
-        # tvars = tf.trainable_variables()
-        # grads, _  = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), 10)
         grads_and_vars = optimizer.compute_gradients(self.total_loss)
         nil_grads_and_vars = []
         for g, v in grads_and_vars:
