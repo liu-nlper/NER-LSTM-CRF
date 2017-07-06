@@ -22,7 +22,7 @@ Bi-LSTM/Bi-GRU + CRF.
     市   NR   E-GPE
 ### 2.2 修改配置文件
 - Step 1: 将上述训练文件的路径写入配置文件`config.yml`中的`data_params／path_train`参数里；
-- Step 2: 以上样例数据中每行包含三列，分别称为`f1`、`f2`和`label`，首先需要将需要将`model_params/feature_names`设置为`['f1', 'f2']`，并将`embed_params`下的名称改为相应的feature name，其中的`shape`参数需要通过预处理之后才能得带(Step 3)，`path_pre_train`为预训练的词向量路径，格式同gensim生成的txt文件格式；
+- Step 2: 以上样例数据中每行包含三列，分别称为`f1`、`f2`和`label`，首先需要将需要将`model_params/feature_names`设置为`['f1', 'f2']`，并将`embed_params`下的名称改为相应的feature name，其中的`shape`参数需要通过预处理之后才能得到(Step 3)，`path_pre_train`为预训练的词向量路径，格式同gensim生成的txt文件格式；
 - Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(即名称到编号id的映射字典)，改为相应的路径；
 
 ### 2.3 预处理
@@ -64,7 +64,7 @@ Bi-LSTM/Bi-GRU + CRF.
 - tqdm
 - yaml
 
-## 4. Reference
+## 4. References
 - 参考论文：[http://www.aclweb.org/anthology/N16-1030](http://www.aclweb.org/anthology/N16-1030 "http://www.aclweb.org/anthology/N16-1030")
 - 参考项目：[https://github.com/koth/kcws](https://github.com/koth/kcws "https://github.com/koth/kcws") ; [https://github.com/chilynn/sequence-labeling](https://github.com/chilynn/sequence-labeling "https://github.com/chilynn/sequence-labeling")
 
