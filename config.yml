@@ -39,6 +39,7 @@ data_params:
         label:
             min_count: 0
             path: './Res/voc/label.voc.pkl'
+    sep: 'table'  # table or space
     path_train: './data/sample_train.txt'
     path_test: './data/sample_test.txt'
     path_result: './data/sample_test_result.txt'
