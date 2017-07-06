@@ -40,7 +40,7 @@ def load_lookup_tables(paths):
     return lookup_tables
 
 
-def init_data(path, feature_names, vocs, max_len, model='train'):
+def init_data(path, feature_names, vocs, max_len, model='train', sep='\t'):
     """
     加载数据(待优化，目前是一次性加载整个数据集)
     Args:
@@ -49,6 +49,7 @@ def init_data(path, feature_names, vocs, max_len, model='train'):
         vocs: list of dict
         max_len: int, 句子最大长度
         model: str, in ('train', 'test')
+        sep: str, 特征之间的分割符, default is '\t'
     Returns:
         data_dict: dict
     """
@@ -68,7 +69,7 @@ def init_data(path, feature_names, vocs, max_len, model='train'):
         one_instance_items = []
         [one_instance_items.append([]) for _ in range(len(feature_names)+1)]
         for item in items:
-            feature_tokens = item.split('\t')
+            feature_tokens = item.split(sep)
             for j in range(feature_count):
                 one_instance_items[j].append(feature_tokens[j])
             if model == 'train':
