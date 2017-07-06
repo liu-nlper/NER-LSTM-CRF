@@ -40,8 +40,11 @@ def main():
     vocs = load_vocs(path_vocs)
 
     # 加载训练数据
+    sep_str = config['data_params']['sep']
+    assert sep_str in ['table', 'space']
+    sep = '\t' if sep_str == 'table' else ' '
     data_dict = init_data(
-        path=config['data_params']['path_train'], feature_names=feature_names,
+        path=config['data_params']['path_train'], feature_names=feature_names, sep=sep,
         vocs=vocs, max_len=config['model_params']['sequence_length'], model='train')
 
     # 训练模型
