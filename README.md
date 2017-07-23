@@ -29,7 +29,7 @@ Bi-LSTM/Bi-GRU + CRF.
 - 运行`preprocessing.py`文件进行预处理，会得到各个特征的item数以及label数，并修改步骤(2)中的`shape`参数，要注意的是表的大小需要比计算得出的值大1，因为id:0在模型中表示的是padding值。
 
 ### 2.４ 训练模型
-- 训练模型：调整其余参数，其中dev_size表示开发集占训练集的比例，并运行：`python3 train.py`。
+- 训练模型：调整其余参数，其中dev_size表示开发集占训练集的比例，并运行`python3 train.py`。
 
 ### 2.５ 标记数据
 - 标记数据：`config.yml`中修改相应的`path_test`和`path_result`，并运行`python3 test.py`。
