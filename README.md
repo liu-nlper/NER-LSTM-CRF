@@ -59,7 +59,6 @@ some other parameters...
 ```
 
 ## 3. Requirements
-- python3
 - numpy
 - tensorflow 1.2
 - pickle
