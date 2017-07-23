@@ -38,13 +38,14 @@ Bi-LSTM/Bi-GRU + CRF.
 - model_params/bilstm_params:
 
 
-```python
+```
     num_units: bilstm/bigru单元数，默认256;
     num_layers: bilstm/bigru层数；
     use_crf: 是否使用crf层；
     rnn_unit: lstm or gru，模型中使用哪种单元；
     learning_rate: 学习率；
-    dev_size: 训练集中划分出的开发集的比例，shuffle之后再划分；
+    clip: None or int, 梯度裁剪；
+    dev_size: 训练集中划分出的开发集的比例，shuffle之后再划分；
     dropout_rate: bilstm/bigru输出与全连接层之间；
     l2_rate: 加在全连接层权重上；
     nb_classes: 标签数（preprocessing.py输出结果上+1）;
