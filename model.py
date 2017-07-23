@@ -19,7 +19,7 @@ class SequenceLabelingModel(object):
                  feature_init_weight_dict=None, feature_weight_shape_dict=None,
                  feature_weight_dropout_dict=None, dropout_rate=0., use_crf=True,
                  path_model=None, nb_epoch=200, batch_size=128, train_max_patience=10,
-                 l2_rate=0.01, rnn_unit='lstm', learning_rate=0.001):
+                 l2_rate=0.01, rnn_unit='lstm', learning_rate=0.001, clip=None):
         """
         Args:
           sequence_length: int, 输入序列的padding后的长度
@@ -42,6 +42,7 @@ class SequenceLabelingModel(object):
 
           rnn_unit: str, lstm or gru
           learning_rate: float, default is 0.001
+          clip: None or float, gradients clip
         """
         self.sequence_length = sequence_length
         self.nb_classes = nb_classes
@@ -64,6 +65,7 @@ class SequenceLabelingModel(object):
         self.l2_rate = l2_rate
         self.rnn_unit = rnn_unit
         self.learning_rate = learning_rate
+        self.clip = clip
 
         assert len(feature_names) == len(list(set(feature_names))), \
             'duplication of feature names!'
@@ -169,9 +171,17 @@ class SequenceLabelingModel(object):
                 nil_grads_and_vars.append((zero_nil_slot(g), v))
             else:
                 nil_grads_and_vars.append((g, v))
+
         global_step = tf.Variable(0, name='global_step', trainable=False)
-        self.train_op = optimizer.apply_gradients(
-            nil_grads_and_vars, name='train_op', global_step=global_step)
+        if self.clip:
+            # clip by global norm
+            gradients, variables = zip(*nil_grads_and_vars)
+            gradients, _ = tf.clip_by_global_norm(gradients, self.clip)
+            self.train_op = optimizer.apply_gradients(
+                zip(gradients, variables), name='train_op', global_step=global_step)
+        else:
+            self.train_op = optimizer.apply_gradients(
+                nil_grads_and_vars, name='train_op', global_step=global_step)
 
         # TODO sess, visible_device_list待修改
         gpu_options = tf.GPUOptions(visible_device_list='0', allow_growth=True)
