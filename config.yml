@@ -19,6 +19,7 @@ model_params:
     use_crf: True
     rnn_unit: 'lstm'  # 'lstm' or 'gru'
     learning_rate: 0.002
+    clip: 10
     dev_size: 0.1
     dropout_rate: 0.5
     l2_rate: 0.01
