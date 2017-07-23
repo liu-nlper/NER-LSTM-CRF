@@ -63,6 +63,7 @@ def main():
         l2_rate=config['model_params']['l2_rate'],
         rnn_unit=config['model_params']['rnn_unit'],
         learning_rate=config['model_params']['learning_rate'],
+        clip=config['model_params']['clip'],
         path_model=config['model_params']['path_model'])
 
     model.fit(
