@@ -45,6 +45,9 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
             feature_item_dict_list[i][items[i]] += 1
         line = file_data.readline()
     file_data.close()
+    # last instance
+    if sequence_length != 0:
+        sequence_length_dict[sequence_length] += 1
 
     # 写入文件
     for i, name in enumerate(columns):
