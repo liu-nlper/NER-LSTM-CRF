@@ -26,7 +26,7 @@ Bi-LSTM/Bi-GRU + CRF.
 - Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(即名称到编号id的映射字典)，改为相应的路径；
 
 ### 2.3 预处理
-- 运行`preprocessing.py`文件进行预处理，会得到各个特征的item数以及label数，并修改步骤(2)中的`shape`参数，要注意的是表的大小需要比计算得出的值大1，因为id:0在模型中表示的是padding值。
+- 运行`preprocessing.py`文件进行预处理，会得到各个特征的item数以及label数，并自动修改`config.yml`文件，需要注意的是。
 
 ### 2.４ 训练模型
 - 训练模型：调整其余参数，其中dev_size表示开发集占训练集的比例，并运行`python3 train.py`。
