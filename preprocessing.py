@@ -90,15 +90,21 @@ def main():
         min_counts_dict=min_counts_dict, path_vocs_dict=path_vocs_dict)
 
     # 构建embedding表
-    for feature_name in feature_names:
+    feature_dim_dict = dict()  # 存储每个feature的dim
+    for i, feature_name in enumerate(feature_names):
         path_pre_train = config['model_params']['embed_params'][feature_name]['path_pre_train']
         if not path_pre_train:
+            if i == 0:
+                feature_dim_dict[feature_name] = 64
+            else:
+                feature_dim_dict[feature_name] = 32
             continue
         path_pkl = config['model_params']['embed_params'][feature_name]['path']
         path_voc = config['data_params']['voc_params'][feature_name]['path']
         with open(path_voc, 'rb') as file_r:
             voc = pickle.load(file_r)
         embedding_dict, vec_dim = load_embed_from_txt(path_pre_train)
+        feature_dim_dict[feature_name] = vec_dim
         embedding_matrix = np.zeros((len(voc.keys())+1, vec_dim), dtype='float32')
         for item in voc:
             if item in embedding_dict:
@@ -115,9 +121,11 @@ def main():
     config['model_params']['nb_classes'] = label_size + 1
     for i, feature_name in enumerate(feature_names):
         if i == 0:
-            config['model_params']['embed_params'][feature_name]['shape'] = [voc_sizes[i]+1, 64]
+            config['model_params']['embed_params'][feature_name]['shape'] = \
+                [voc_sizes[i]+1, feature_dim_dict[feature_name]]
         else:
-            config['model_params']['embed_params'][feature_name]['shape'] = [voc_sizes[i]+1, 32]
+            config['model_params']['embed_params'][feature_name]['shape'] = \
+                [voc_sizes[i]+1, feature_dim_dict[feature_name]]
     # 写入文件
     with codecs.open('./config.yml', 'w', encoding='utf-8') as file_w:
         yaml.dump(config, file_w)
