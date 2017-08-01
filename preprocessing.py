@@ -20,6 +20,9 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
         path_vocs_dict: dict, 字典存放路径
         min_counts_dict: dict, item最少出现次数
         columns: list of str, 每一列的名称
+    Returns:
+        voc_size_1, voc_size_2, ...: int
+        sequence_length: 序列最大长度
     """
     print('building vocs...')
     file_data = codecs.open(path_data, 'r', encoding='utf-8')
@@ -50,14 +53,18 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
         sequence_length_dict[sequence_length] += 1
 
     # 写入文件
+    voc_sizes = []
     for i, name in enumerate(columns):
         size = create_dictionary(
             feature_item_dict_list[i], path_vocs_dict[name], start=1,
             sort=True, min_count=min_counts_dict[name], overwrite=True)
         print('voc: %s, size: %d' % (path_vocs_dict[name], size))
+        voc_sizes.append(size)
     print('句子长度分布:')
     print(sorted(sequence_length_dict.items()))
     print('done!')
+
+    return voc_sizes, max(sequence_length_dict.keys())
 
 
 def main():
@@ -67,7 +74,7 @@ def main():
     with open('./config.yml') as file_config:
         config = yaml.load(file_config)
 
-    # 构建字典
+    # 构建字典(同时获取词表size，序列最大长度)
     columns = config['model_params']['feature_names'] + ['label']
     min_counts_dict, path_vocs_dict = defaultdict(int), dict()
     feature_names = config['model_params']['feature_names']
@@ -78,7 +85,7 @@ def main():
             config['data_params']['voc_params'][feature_name]['path']
     path_vocs_dict['label'] = \
         config['data_params']['voc_params']['label']['path']
-    build_vocabulary(
+    voc_sizes, sequence_length = build_vocabulary(
         path_data=config['data_params']['path_train'], columns=columns,
         min_counts_dict=min_counts_dict, path_vocs_dict=path_vocs_dict)
 
@@ -100,6 +107,20 @@ def main():
                 embedding_matrix[voc[item], :] = np.random.uniform(-0.25, 0.25, size=(vec_dim))
         with open(path_pkl, 'wb') as file_w:
             pickle.dump(embedding_matrix, file_w)
+
+    # 修改config中各个特征的shape，embedding大小默认为[64, 32, 32, ...]
+    label_size = voc_sizes[-1]
+    voc_sizes = voc_sizes[:-1]
+    # 修改nb_classes
+    config['model_params']['nb_classes'] = label_size + 1
+    for i, feature_name in enumerate(feature_names):
+        if i == 0:
+            config['model_params']['embed_params'][feature_name]['shape'] = [voc_sizes[i]+1, 64]
+        else:
+            config['model_params']['embed_params'][feature_name]['shape'] = [voc_sizes[i]+1, 32]
+    # 写入文件
+    with codecs.open('./config.yml', 'w', encoding='utf-8') as file_w:
+        yaml.dump(config, file_w)
 
     print('all done!')
 
