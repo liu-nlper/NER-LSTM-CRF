@@ -26,7 +26,7 @@ Bi-LSTM/Bi-GRU + CRF.
 - Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(即名称到编号id的映射字典)，改为相应的路径；
 
 ### 2.3 预处理
-- 运行`preprocessing.py`文件进行预处理，会得到各个特征的item数以及label数，并自动修改`config.yml`文件中各个feature的`shape`参数，以及`nb_classes`参数。需要注意的是，若提供了预训练的embedding向量，则特征embedding的维度以预训练的向量维度为准，若没有提供预训练的向量，则向量随机初始化，第一列的特征向量维度默认为64，其余为32。
+- 运行`preprocessing.py`文件进行预处理，会得到各个特征的item数以及label数，并自动修改`config.yml`文件中各个feature的`shape`参数，以及`nb_classes`参数。需要注意的是，若提供了预训练的embedding向量，则特征embedding的维度以预训练的向量维度为准，若没有提供预训练的向量，则第一列的特征向量维度默认为64，其余特征为32，这里可以根据实际情况进行调整。
 
 ### 2.４ 训练模型
 - 训练模型：调整其余参数，其中dev_size表示开发集占训练集的比例，并运行`python3 train.py`。
