@@ -30,7 +30,7 @@ Bi-LSTM/Bi-GRU + CRF.
 - 需要注意的是，若提供了预训练的embedding向量，则特征embedding的维度以预训练的向量维度为准，若没有提供预训练的向量，则第一列的特征向量维度默认为64，其余特征为32，这里可以根据实际情况进行调整。
 
 ### 2.４ 训练模型
-- 训练模型：根据需要调整其余参数，其中dev_size表示开发集占训练集的比例（默认取训练集的10%），并运行`python/python3 train.py`。
+- 训练模型：根据需要调整其余参数，其中dev_size表示开发集占训练集的比例（默认值为0.1），并运行`python/python3 train.py`。
 
 ### 2.５ 标记数据
 - 标记数据：`config.yml`中修改相应的`path_test`和`path_result`，并运行`python/python3 test.py`。
