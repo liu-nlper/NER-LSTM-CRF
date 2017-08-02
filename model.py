@@ -263,6 +263,7 @@ class SequenceLabelingModel(object):
                     print('\nfinished training! (early stopping, max patience: %d)'
                           % self.train_max_patience)
                     return
+        print('\nfinished training!)
         return
 
     def split_train_dev(self, data_dict, dev_size=0.2):
