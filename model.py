@@ -80,16 +80,15 @@ class SequenceLabelingModel(object):
         self.feature_weight_dict = dict()
         self.nil_vars = set()
         self.dropout_rate_ph = tf.placeholder(tf.float32, name='dropout_rate_ph')
+        # label ph
+        self.input_label_ph = tf.placeholder(
+            dtype=tf.int32, shape=[None, self.sequence_length], name='input_label_ph')
         for feature_name in self.feature_names:
 
             # input ph
             self.input_feature_ph_dict[feature_name] = tf.placeholder(
                 dtype=tf.int32, shape=[None, self.sequence_length],
                 name='input_feature_ph_%s' % feature_name)
-
-            # label ph
-            self.input_label_ph = tf.placeholder(
-                dtype=tf.int32, shape=[None, self.sequence_length], name='input_label_ph')
 
             # dropout rate ph
             self.weight_dropout_ph_dict[feature_name] = tf.placeholder(
