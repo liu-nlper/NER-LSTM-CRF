@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    command line:
+    使用gensim训练word vectors
+    Usage:
         python3 train_word2vec_model.py path_of_corpus path_of_model
 """
 import logging
