@@ -59,14 +59,20 @@ sep: 'table' or 'space'，表示特征之间的分隔符；
 some other parameters...
 ```
 
-## 3. Requirements
+## 3. Utils
+一些小工具，包括：
+- train_word2vec_model.py: 利用gensim训练词向量；
+- trietree.py: 构建Trie树，并实现查找（待优化），可用于构建字典特征；
+- updating...
+
+## 4. Requirements
 - numpy
 - tensorflow 1.2
 - pickle
 - tqdm
 - yaml
 
-## 4. References
+## 5. References
 - 参考论文：[http://www.aclweb.org/anthology/N16-1030](http://www.aclweb.org/anthology/N16-1030 "http://www.aclweb.org/anthology/N16-1030")
 - 参考项目：[https://github.com/koth/kcws](https://github.com/koth/kcws "https://github.com/koth/kcws") ; [https://github.com/chilynn/sequence-labeling](https://github.com/chilynn/sequence-labeling "https://github.com/chilynn/sequence-labeling")
 
