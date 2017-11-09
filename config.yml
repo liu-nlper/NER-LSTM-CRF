@@ -1,3 +1,4 @@
+# -*- encoding:utf-8 -*-
 model: NER
 model_params:
     bilstm_params:
