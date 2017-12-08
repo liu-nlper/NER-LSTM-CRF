@@ -54,6 +54,7 @@ def main():
         sequence_length=config['model_params']['sequence_length'],
         nb_classes=config['model_params']['nb_classes'],
         nb_hidden=config['model_params']['bilstm_params']['num_units'],
+        num_layers=config['model_params']['bilstm_params']['num_layers'],
         feature_weight_shape_dict=feature_weight_shape_dict,
         feature_init_weight_dict=feature_init_weight_dict,
         feature_weight_dropout_dict=feature_weight_dropout_dict,
