@@ -353,6 +353,7 @@ class SequenceLabelingModel(object):
     def compute_loss(self):
         """
         计算loss
+
         Return:
             loss: scalar
         """
