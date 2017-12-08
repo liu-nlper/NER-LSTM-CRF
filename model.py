@@ -16,7 +16,7 @@ from utils import uniform_tensor, get_sequence_actual_length, \
 class SequenceLabelingModel(object):
 
     def __init__(self, sequence_length, nb_classes, nb_hidden=512, num_layers=1,
-                 feature_names=None, feature_init_weight_dict=None,
+                 rnn_dropout=0., feature_names=None, feature_init_weight_dict=None,
                  feature_weight_shape_dict=None, feature_weight_dropout_dict=None,
                  dropout_rate=0., use_crf=True, path_model=None, nb_epoch=200,
                  batch_size=128, train_max_patience=10, l2_rate=0.01,
@@ -27,6 +27,7 @@ class SequenceLabelingModel(object):
           nb_classes: int, 标签类别数量
           nb_hidden: int, lstm/gru层的结点数
           num_layers: int, lstm/gru层数
+          rnn_dropout: lstm层的dropout值
 
           feature_names: list of str, 特征名称集合
           feature_init_weight_dict: dict, 键:特征名称, 值:np,array, 特征的初始化权重字典
@@ -50,6 +51,7 @@ class SequenceLabelingModel(object):
         self._nb_classes = nb_classes
         self._nb_hidden = nb_hidden
         self._num_layers = num_layers
+        self._rnn_dropout = rnn_dropout
 
         self._feature_names = feature_names
         self._feature_init_weight_dict = feature_init_weight_dict if \
@@ -83,6 +85,7 @@ class SequenceLabelingModel(object):
         self.feature_weight_dict = dict()
         self.nil_vars = set()
         self.dropout_rate_ph = tf.placeholder(tf.float32, name='dropout_rate_ph')
+        self.rnn_dropout_rate_ph = tf.placeholder(tf.float32, name='rnn_dropout_rate_ph')
         # label ph
         self.input_label_ph = tf.placeholder(
             dtype=tf.int32, shape=[None, self._sequence_length], name='input_label_ph')
@@ -134,8 +137,8 @@ class SequenceLabelingModel(object):
         _bw_cells = []
         for _ in range(self._num_layers):
             fw, bw = self._get_rnn_unit(self._rnn_unit)
-            _fw_cells.append(fw)
-            _bw_cells.append(bw)
+            _fw_cells.append(tf.nn.rnn_cell.DropoutWrapper(fw, output_keep_prob=1-self.rnn_dropout_rate_ph))
+            _bw_cells.append(tf.nn.rnn_cell.DropoutWrapper(bw, output_keep_prob=1-self.rnn_dropout_rate_ph))
         fw_cell = tf.nn.rnn_cell.MultiRNNCell(_fw_cells)
         bw_cell = tf.nn.rnn_cell.MultiRNNCell(_bw_cells)
 
@@ -245,7 +248,11 @@ class SequenceLabelingModel(object):
                     dropout_rate = self._feature_weight_dropout_dict[feature_name]
                     item = {self.weight_dropout_ph_dict[feature_name]: dropout_rate}
                     feed_dict.update(item)
-                feed_dict.update({self.dropout_rate_ph: self._dropout_rate})
+                feed_dict.update(
+                    {
+                        self.dropout_rate_ph: self._dropout_rate,
+                        self.rnn_dropout_rate_ph: self._rnn_dropout,
+                    })
                 # label feed
                 batch_label = data_train_dict['label'][batch_indices]
                 feed_dict.update({self.input_label_ph: batch_label})
@@ -318,7 +325,7 @@ class SequenceLabelingModel(object):
                 # dropout
                 item = {self.weight_dropout_ph_dict[feature_name]: 0.}
                 feed_dict.update(item)
-            feed_dict.update({self.dropout_rate_ph: 0.})
+            feed_dict.update({self.dropout_rate_ph: 0., self.rnn_dropout_rate_ph: 0.})
             # label feed
             batch_label = data_dict['label'][batch_indices]
             feed_dict.update({self.input_label_ph: batch_label})
@@ -352,7 +359,7 @@ class SequenceLabelingModel(object):
                 # dropout
                 item = {self.weight_dropout_ph_dict[feature_name]: 0.}
                 feed_dict.update(item)
-            feed_dict.update({self.dropout_rate_ph: 0.})
+            feed_dict.update({self.dropout_rate_ph: 0., self.rnn_dropout_rate_ph: 0.})
 
             logits, sequence_actual_length, transition_params = self.sess.run(
                 [self.logits, self.sequence_actual_length, self.transition_params], feed_dict=feed_dict)

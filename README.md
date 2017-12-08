@@ -42,6 +42,7 @@ Bi-LSTM/Bi-GRU + CRF.
 ```
 num_units: bilstm/bigru单元数，默认256;
 num_layers: bilstm/bigru层数；
+rnn_dropout: lstm/gru层的dropout值；
 use_crf: 是否使用crf层；
 rnn_unit: lstm or gru，模型中使用哪种单元；
 learning_rate: 学习率；
