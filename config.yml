@@ -10,7 +10,7 @@ data_params:
 model: NER
 model_params:
   batch_size: 64
-  bilstm_params: {num_layers: 1, num_units: 256}
+  bilstm_params: {num_layers: 2, num_units: 256}
   clip: 10
   dev_size: 0.1
   dropout_rate: 0.5

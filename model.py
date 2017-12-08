@@ -129,20 +129,15 @@ class SequenceLabelingModel(object):
         input_features = self.embedding_features[0] if len(self.embedding_features) == 1 \
             else tf.concat(values=self.embedding_features, axis=2, name='input_features')
 
-        # bi-lstm
-
-        if self._rnn_unit == 'lstm':
-            fw_cell_ = rnn.BasicLSTMCell(self._nb_hidden, forget_bias=1., state_is_tuple=True)
-            bw_cell_ = rnn.BasicLSTMCell(self._nb_hidden, forget_bias=1., state_is_tuple=True)
-        elif self._rnn_unit == 'gru':
-            fw_cell_ = rnn.GRUCell(self._nb_hidden)
-            bw_cell_ = rnn.GRUCell(self._nb_hidden)
-        else:
-            raise ValueError('rnn_unit must in (lstm, gru)!')
-
-        # multi layer
-        fw_cell = tf.nn.rnn_cell.MultiRNNCell([fw_cell_] * self._num_layers)
-        bw_cell = tf.nn.rnn_cell.MultiRNNCell([bw_cell_] * self._num_layers)
+        # multi bi-lstm layer
+        _fw_cells = []
+        _bw_cells = []
+        for _ in range(self._num_layers):
+            fw, bw = self._get_rnn_unit(self._rnn_unit)
+            _fw_cells.append(fw)
+            _bw_cells.append(bw)
+        fw_cell = tf.nn.rnn_cell.MultiRNNCell(_fw_cells)
+        bw_cell = tf.nn.rnn_cell.MultiRNNCell(_bw_cells)
 
         # 计算self.input_features[feature_names[0]]的实际长度(0为padding值)
         self.sequence_actual_length = get_sequence_actual_length(  # 每个句子的实际长度
@@ -197,6 +192,17 @@ class SequenceLabelingModel(object):
         # init all variable
         init = tf.global_variables_initializer()
         self.sess.run(init)
+
+    def _get_rnn_unit(self, rnn_unit):
+        if rnn_unit == 'lstm':
+            fw_cell = rnn.BasicLSTMCell(self._nb_hidden, forget_bias=1., state_is_tuple=True)
+            bw_cell = rnn.BasicLSTMCell(self._nb_hidden, forget_bias=1., state_is_tuple=True)
+        elif rnn_unit == 'gru':
+            fw_cell = rnn.GRUCell(self._nb_hidden)
+            bw_cell = rnn.GRUCell(self._nb_hidden)
+        else:
+            raise ValueError('rnn_unit must in (lstm, gru)!')
+        return fw_cell, bw_cell
 
     def fit(self, data_dict, dev_size=0.2, seed=1337):
         """
