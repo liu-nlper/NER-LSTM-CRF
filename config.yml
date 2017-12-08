@@ -1,47 +1,37 @@
-# -*- encoding:utf-8 -*-
+data_params:
+  path_result: ./data/sample_test_result.txt
+  path_test: ./data/sample_train.txt
+  path_train: ./data/sample_train.txt
+  sep: table
+  voc_params:
+    f1: {min_count: 0, path: ./Res/voc/f1.voc.pkl}
+    f2: {min_count: 0, path: ./Res/voc/f2.voc.pkl}
+    label: {min_count: 0, path: ./Res/voc/label.voc.pkl}
 model: NER
 model_params:
-    bilstm_params:
-        num_units: 256
-        # num layers暂时只能设置成1
-        num_layers: 1
-    feature_names: ['f1', 'f2']
-    embed_params:
-        f1:
-            dropout_rate: 0.3
-            shape: [220, 64]
-            path_pre_train: './data/embedding.txt'
-            path: './Res/embed/char_embed.pkl'
-        f2:
-            dropout_rate: 0.3
-            shape: [5, 32]
-            path_pre_train: null
-            path: null
-    use_crf: True
-    rnn_unit: 'lstm'  # 'lstm' or 'gru'
-    learning_rate: 0.002
-    clip: 10
-    dev_size: 0.1
-    dropout_rate: 0.5
-    l2_rate: 0.01
-    nb_classes: 12
-    sequence_length: 200
-    batch_size: 64
-    nb_epoch: 200
-    max_patience: 20
-    path_model: './Model/best_model'
-data_params:
-    voc_params:
-        f1:
-            min_count: 0
-            path: './Res/voc/f1.voc.pkl'
-        f2:
-            min_count: 0
-            path: './Res/voc/f2.voc.pkl'
-        label:
-            min_count: 0
-            path: './Res/voc/label.voc.pkl'
-    sep: 'table'  # table or space
-    path_train: './data/sample_train.txt'
-    path_test: './data/sample_test.txt'
-    path_result: './data/sample_test_result.txt'
+  batch_size: 64
+  bilstm_params: {num_layers: 1, num_units: 256}
+  clip: 10
+  dev_size: 0.1
+  dropout_rate: 0.5
+  embed_params:
+    f1:
+      dropout_rate: 0.3
+      path: ./Res/embed/char_embed.pkl
+      path_pre_train: ./data/embedding.txt
+      shape: [10, 64]
+    f2:
+      dropout_rate: 0.3
+      path: null
+      path_pre_train: null
+      shape: [4, 32]
+  feature_names: [f1, f2]
+  l2_rate: 0.01
+  learning_rate: 0.002
+  max_patience: 5
+  nb_classes: 8
+  nb_epoch: 200
+  path_model: ./Model/best_model
+  rnn_unit: lstm
+  sequence_length: 20
+  use_crf: true
