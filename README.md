@@ -62,7 +62,8 @@ some other parameters...
 ## 3. Utils
 一些小工具，包括：
 - train_word2vec_model.py: 利用gensim训练词向量；
-- trietree.py: 构建Trie树，并实现查找（待优化），可用于构建字典特征；
+- ~~trietree.py: 构建Trie树，并实现查找（待优化），可用于构建字典特征；~~
+- [KeywordExtractor](https://github.com/liu-nlper/KeywordExtractor)，trietree.py用KeywordExtractor库代替，提供更多接口；
 - updating...
 
 ## 4. Requirements
