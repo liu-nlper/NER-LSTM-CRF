@@ -4,6 +4,7 @@ __author__ = 'jxliu.nlper@gmail.com'
 """
     预处理
 """
+import sys
 import yaml
 import pickle
 import codecs
@@ -12,7 +13,8 @@ from collections import defaultdict
 from utils import create_dictionary, load_embed_from_txt
 
 
-def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns, sequence_len_pt=98):
+def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
+                     sequence_len_pt=98, use_char_featrue=False):
     """
     构建字典
     Args:
@@ -20,7 +22,8 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns, sequen
         path_vocs_dict: dict, 字典存放路径
         min_counts_dict: dict, item最少出现次数
         columns: list of str, 每一列的名称
-        sequence_len_pt: 句子长度百分位
+        sequence_len_pt: int，句子长度百分位
+        use_char_featrue: bool，是否使用字符特征(针对英文)
     Returns:
         voc_size_1, voc_size_2, ...: int
         sequence_length: 序列最大长度
@@ -35,23 +38,30 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns, sequen
     for i in range(len(columns)):
         feature_item_dict_list.append(defaultdict(int))
     sequence_length = 0
+    sentence_count = 0  # 句子数
     while line:
         line = line.rstrip()
         if not line:
+            sentence_count += 1
+            sys.stdout.write('当前处理句子数: %d\r' % sentence_count)
+            sys.stdout.flush()
             line = file_data.readline()
             sequence_length_list.append(sequence_length)
             sequence_length = 0
             continue
         items = line.split('\t')
         sequence_length += 1
-        print(items)
+        # print(items)
         for i in range(len(items)):
             feature_item_dict_list[i][items[i]] += 1
         line = file_data.readline()
     file_data.close()
     # last instance
     if sequence_length != 0:
+        sentence_count += 1
+        sys.stdout.write('当前处理句子数: %d\r' % sentence_count)
         sequence_length_list.append(sequence_length)
+    print()
 
     # 写入文件
     voc_sizes = []
