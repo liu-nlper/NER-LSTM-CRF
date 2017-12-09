@@ -12,7 +12,7 @@ from collections import defaultdict
 from utils import create_dictionary, load_embed_from_txt
 
 
-def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
+def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns, sequence_len_pt=98):
     """
     构建字典
     Args:
@@ -20,6 +20,7 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
         path_vocs_dict: dict, 字典存放路径
         min_counts_dict: dict, item最少出现次数
         columns: list of str, 每一列的名称
+        sequence_len_pt: 句子长度百分位
     Returns:
         voc_size_1, voc_size_2, ...: int
         sequence_length: 序列最大长度
@@ -28,7 +29,7 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
     file_data = codecs.open(path_data, 'r', encoding='utf-8')
     line = file_data.readline()
 
-    sequence_length_dict = defaultdict(int)  # 句子最大长度
+    sequence_length_list = []  # 句子长度
     # 计数items
     feature_item_dict_list = []
     for i in range(len(columns)):
@@ -38,7 +39,7 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
         line = line.rstrip()
         if not line:
             line = file_data.readline()
-            sequence_length_dict[sequence_length] += 1
+            sequence_length_list.append(sequence_length)
             sequence_length = 0
             continue
         items = line.split('\t')
@@ -50,7 +51,7 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
     file_data.close()
     # last instance
     if sequence_length != 0:
-        sequence_length_dict[sequence_length] += 1
+        sequence_length_list.append(sequence_length)
 
     # 写入文件
     voc_sizes = []
@@ -61,10 +62,20 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns):
         print('voc: %s, size: %d' % (path_vocs_dict[name], size))
         voc_sizes.append(size)
     print('句子长度分布:')
-    print(sorted(sequence_length_dict.items()))
+    sentence_length = -1
+    option_len_pt = [90, 95, 98, 100]
+    if sequence_len_pt not in option_len_pt:
+        option_len_pt.append(sequence_len_pt)
+    for per in sorted(option_len_pt):
+        tmp = int(np.percentile(sequence_length_list, per))
+        if per == sequence_len_pt:
+            sentence_length = tmp
+            print('%3d percentile: %d (default)' % (per, tmp))
+        else:
+            print('%3d percentile: %d' % (per, tmp))
     print('done!')
 
-    return voc_sizes, max(sequence_length_dict.keys())
+    return voc_sizes, sentence_length
 
 
 def main():
@@ -85,9 +96,11 @@ def main():
             config['data_params']['voc_params'][feature_name]['path']
     path_vocs_dict['label'] = \
         config['data_params']['voc_params']['label']['path']
+    sequence_len_pt = config['model_params']['sequence_len_pt']
     voc_sizes, sequence_length = build_vocabulary(
         path_data=config['data_params']['path_train'], columns=columns,
-        min_counts_dict=min_counts_dict, path_vocs_dict=path_vocs_dict)
+        min_counts_dict=min_counts_dict, path_vocs_dict=path_vocs_dict,
+        sequence_len_pt=sequence_len_pt)
 
     # 构建embedding表
     feature_dim_dict = dict()  # 存储每个feature的dim
@@ -126,6 +139,8 @@ def main():
         else:
             config['model_params']['embed_params'][feature_name]['shape'] = \
                 [voc_sizes[i]+1, feature_dim_dict[feature_name]]
+    # 修改句子长度
+    config['model_params']['sequence_length'] = sequence_length
     # 写入文件
     with codecs.open('./config.yml', 'w', encoding='utf-8') as file_w:
         yaml.dump(config, file_w)
