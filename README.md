@@ -39,12 +39,12 @@ Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(�
 
 训练模型：根据需要调整其余参数，其中dev_size表示开发集占训练集的比例（默认值为0.1），并运行：
 
-    $ `python/python3 train.py`。
+    $ python/python3 train.py
 
 ### 2.５ 标记数据
 标记数据：`config.yml`中修改相应的`path_test`和`path_result`，并运行：
 
-    $ `python/python3 test.py`。
+    $ python/python3 test.py
 
 ### 2.6 参数说明
 
