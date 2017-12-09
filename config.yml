@@ -1,9 +1,10 @@
 data_params:
-  path_result: ./data/train.ner.txt.result
+  path_result: ./data/test.ner.txt.result
   path_test: ./data/test.ner.txt
   path_train: ./data/train.ner.txt
   sep: table
   voc_params:
+    char: {min_count: 0, path: ./Res/voc/char.voc.pkl}
     f1: {min_count: 0, path: ./Res/voc/f1.voc.pkl}
     f2: {min_count: 0, path: ./Res/voc/f2.voc.pkl}
     label: {min_count: 0, path: ./Res/voc/label.voc.pkl}
@@ -15,6 +16,11 @@ model_params:
   dev_size: 0.1
   dropout_rate: 0.5
   embed_params:
+    char:
+      dropout_rate: 0.3
+      path: null
+      path_pre_train: null
+      shape: [85, 16]
     f1:
       dropout_rate: 0.3
       path: ./Res/embed/char_embed.pkl
@@ -35,5 +41,10 @@ model_params:
   rnn_unit: lstm
   sequence_len_pt: 98
   sequence_length: 55
-  use_char_feature: false
+  use_char_feature: true
+  conv_filter_size_list: [8, 8, 8, 8, 8]
+  conv_filter_len_list: [1, 2, 3, 4, 5]
+  conv_dropout: 0.2
   use_crf: true
+  word_len_pt: 95
+  word_length: 11

@@ -4,6 +4,7 @@ __author__ = 'jxliu.nlper@gmail.com'
 """
     加载数据
 """
+import sys
 import codecs
 import pickle
 import numpy as np
@@ -40,7 +41,8 @@ def load_lookup_tables(paths):
     return lookup_tables
 
 
-def init_data(path, feature_names, vocs, max_len, model='train', sep='\t'):
+def init_data(path, feature_names, vocs, max_len, model='train',
+              use_char_feature=False, word_len=None, sep='\t'):
     """
     加载数据(待优化，目前是一次性加载整个数据集)
     Args:
@@ -49,6 +51,8 @@ def init_data(path, feature_names, vocs, max_len, model='train', sep='\t'):
         vocs: list of dict
         max_len: int, 句子最大长度
         model: str, in ('train', 'test')
+        use_char_feature: bool，是否使用char特征
+        word_len: None or int，单词最大长度
         sep: str, 特征之间的分割符, default is '\t'
     Returns:
         data_dict: dict
@@ -60,8 +64,12 @@ def init_data(path, feature_names, vocs, max_len, model='train', sep='\t'):
     feature_count = len(feature_names)
     data_dict = dict()
     for feature_name in feature_names:
-        data_dict[feature_name] = np.zeros(
-            (sentence_count, max_len), dtype='int32')
+        data_dict[feature_name] = np.zeros((sentence_count, max_len), dtype='int32')
+    # char feature
+    if use_char_feature:
+        data_dict['char'] = np.zeros(
+            (sentence_count, max_len, word_len), dtype='int32')
+        char_voc = vocs.pop(0)
     if model == 'train':
         data_dict['label'] = np.zeros((len(sentences), max_len), dtype='int32')
     for index, sentence in enumerate(sentences):
@@ -77,9 +85,15 @@ def init_data(path, feature_names, vocs, max_len, model='train', sep='\t'):
         for i in range(len(feature_names)):
             data_dict[feature_names[i]][index, :] = map_item2id(
                 one_instance_items[i], vocs[i], max_len)
+        if use_char_feature:
+            for i, word in enumerate(one_instance_items[0]):
+                if i >= max_len:
+                    break
+                data_dict['char'][index][i, :] = map_item2id(
+                    word, char_voc, word_len)
         if model == 'train':
             data_dict['label'][index, :] = map_item2id(
                 one_instance_items[-1], vocs[-1], max_len)
+        sys.stdout.write('loading data: %d\r' % index)
     file_r.close()
-
     return data_dict

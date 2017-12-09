@@ -14,7 +14,7 @@ from utils import create_dictionary, load_embed_from_txt
 
 
 def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
-                     sequence_len_pt=98, use_char_featrue=False):
+                     sequence_len_pt=98, use_char_featrue=False, word_len_pt=98):
     """
     构建字典
     Args:
@@ -24,6 +24,7 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
         columns: list of str, 每一列的名称
         sequence_len_pt: int，句子长度百分位
         use_char_featrue: bool，是否使用字符特征(针对英文)
+        word_len_pt: int，单词长度百分位
     Returns:
         voc_size_1, voc_size_2, ...: int
         sequence_length: 序列最大长度
@@ -37,6 +38,10 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
     feature_item_dict_list = []
     for i in range(len(columns)):
         feature_item_dict_list.append(defaultdict(int))
+    # char feature
+    if use_char_featrue:
+        char_dict = defaultdict(int)
+        word_length_list = []  # 单词长度
     sequence_length = 0
     sentence_count = 0  # 句子数
     while line:
@@ -54,6 +59,11 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
         # print(items)
         for i in range(len(items)):
             feature_item_dict_list[i][items[i]] += 1
+        # char feature
+        if use_char_featrue:
+            for c in items[0]:
+                char_dict[c] += 1
+            word_length_list.append(len(items[0]))
         line = file_data.readline()
     file_data.close()
     # last instance
@@ -65,12 +75,18 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
 
     # 写入文件
     voc_sizes = []
+    if use_char_featrue:  # char feature
+        size = create_dictionary(
+            char_dict, path_vocs_dict['char'], start=1,
+            sort=True, min_count=min_counts_dict['char'], overwrite=True)
+        voc_sizes.append(size)
     for i, name in enumerate(columns):
         size = create_dictionary(
             feature_item_dict_list[i], path_vocs_dict[name], start=1,
             sort=True, min_count=min_counts_dict[name], overwrite=True)
         print('voc: %s, size: %d' % (path_vocs_dict[name], size))
         voc_sizes.append(size)
+
     print('句子长度分布:')
     sentence_length = -1
     option_len_pt = [90, 95, 98, 100]
@@ -83,13 +99,29 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
             print('%3d percentile: %d (default)' % (per, tmp))
         else:
             print('%3d percentile: %d' % (per, tmp))
-    print('done!')
+    if use_char_featrue:
+        print('单词长度分布:')
+        word_length = -1
+        option_len_pt = [90, 95, 98, 100]
+        if word_len_pt not in option_len_pt:
+            option_len_pt.append(word_len_pt)
+        for per in sorted(option_len_pt):
+            tmp = int(np.percentile(word_length_list, per))
+            if per == word_len_pt:
+                word_length = tmp
+                print('%3d percentile: %d (default)' % (per, tmp))
+            else:
+                print('%3d percentile: %d' % (per, tmp))
 
-    return voc_sizes, sentence_length
+    print('done!')
+    lengths = [sentence_length]
+    if use_char_featrue:
+        lengths.append(word_length)
+    return voc_sizes, lengths
 
 
 def main():
-    print('proprecessing...')
+    print('preprocessing...')
 
     # 加载配置文件
     with open('./config.yml') as file_config:
@@ -106,11 +138,23 @@ def main():
             config['data_params']['voc_params'][feature_name]['path']
     path_vocs_dict['label'] = \
         config['data_params']['voc_params']['label']['path']
+
+    # char feature
+    min_counts_dict['char'] = config['data_params']['voc_params']['char']['min_count']
+    path_vocs_dict['char'] = config['data_params']['voc_params']['char']['path']
+
     sequence_len_pt = config['model_params']['sequence_len_pt']
-    voc_sizes, sequence_length = build_vocabulary(
+    use_char_feature = config['model_params']['use_char_feature']
+    word_len_pt = config['model_params']['word_len_pt']
+    voc_sizes, lengths = build_vocabulary(
         path_data=config['data_params']['path_train'], columns=columns,
         min_counts_dict=min_counts_dict, path_vocs_dict=path_vocs_dict,
-        sequence_len_pt=sequence_len_pt)
+        sequence_len_pt=sequence_len_pt, use_char_featrue=use_char_feature,
+        word_len_pt=word_len_pt)
+    if not use_char_feature:
+        sequence_length = lengths[0]
+    else:
+        sequence_length, word_length = lengths[:]
 
     # 构建embedding表
     feature_dim_dict = dict()  # 存储每个feature的dim
@@ -138,10 +182,13 @@ def main():
             pickle.dump(embedding_matrix, file_w)
 
     # 修改config中各个特征的shape，embedding大小默认为[64, 32, 32, ...]
+    if use_char_feature:
+        char_voc_size = voc_sizes.pop(0)
     label_size = voc_sizes[-1]
     voc_sizes = voc_sizes[:-1]
     # 修改nb_classes
     config['model_params']['nb_classes'] = label_size + 1
+    # 修改embedding表的shape
     for i, feature_name in enumerate(feature_names):
         if i == 0:
             config['model_params']['embed_params'][feature_name]['shape'] = \
@@ -149,6 +196,12 @@ def main():
         else:
             config['model_params']['embed_params'][feature_name]['shape'] = \
                 [voc_sizes[i]+1, feature_dim_dict[feature_name]]
+    # 修改char表的embedding
+    if use_char_feature:
+        # 默认16维，根据任务调整
+        config['model_params']['embed_params']['char']['shape'] = \
+            [char_voc_size + 1, 16]
+        config['model_params']['word_length'] = word_length
     # 修改句子长度
     config['model_params']['sequence_length'] = sequence_length
     # 写入文件

@@ -13,14 +13,99 @@ from utils import uniform_tensor, get_sequence_actual_length, \
     zero_nil_slot, shuffle_matrix
 
 
+def get_activation(activation=None):
+    """
+    Get activation function accord to the parameter 'activation'
+    Args:
+        activation: str: 激活函数的名称
+    Return:
+        激活函数
+    """
+    if activation is None:
+        return None
+    elif activation == 'tanh':
+        return tf.nn.tanh
+    elif activation == 'relu':
+        return tf.nn.relu
+    elif activation == 'softmax':
+        return tf.nn.softmax
+    elif activation == 'sigmoid':
+        return tf.sigmoid
+    else:
+        raise Exception('Unknow activation function: %s' % activation)
+
+
+class MultiConvolutional3D(object):
+
+    def __init__(self, input_data, filter_length_list, nb_filter_list, padding='VALID',
+                 activation='relu', pooling='max', name='Convolutional3D'):
+        """1D卷积层
+        Args:
+            input_data: 4D tensor of shape=[batch_size, sent_len, word_len, char_dim]
+                in_channels is set to 1 when use Convolutional1D.
+            filter_length_list: list of int, 卷积核的长度，用于构造卷积核，在
+                Convolutional1D中，卷积核shape=[filter_length, in_width, in_channels, nb_filters]
+            nb_filter_list: list of int, 卷积核数量
+            padding: 默认'VALID'，暂时不支持设成'SAME'
+        """
+        assert padding in ('VALID'), 'Unknow padding %s' % padding
+        # assert padding in ('VALID', 'SAME'), 'Unknow padding %s' % padding
+
+        # expand dim
+        char_dim = int(input_data.get_shape()[-1])  # char的维度
+        self._input_data = tf.expand_dims(input_data, -1)  # shape=[x, x, x, 1]
+        self._filter_length_list = filter_length_list
+        self._nb_filter_list = nb_filter_list
+        self._padding = padding
+        self._activation = get_activation(activation)
+        self._name = name
+
+        pooling_outpouts = []
+        for i in range(len(self._filter_length_list)):
+            filter_length = self._filter_length_list[i]
+            nb_filter = self._nb_filter_list[i]
+            with tf.variable_scope('%s_%d' % (name, filter_length)) as scope:
+                # shape= [batch_size, sent_len-filter_length+1, word_len, 1, nb_filters]
+                conv_output = tf.contrib.layers.conv3d(
+                    inputs=self._input_data,
+                    num_outputs=nb_filter,
+                    kernel_size=[1, filter_length, char_dim],
+                    padding=self._padding)
+                # output's shape=[batch_size, new_height, 1, nb_filters]
+                act_output = (
+                    conv_output if activation is None
+                    else self._activation(conv_output))
+                # max pooling，shape = [batch_size, sent_len, nb_filters]
+                if pooling == 'max':
+                    pooling_output = tf.reduce_max(tf.squeeze(act_output, [-2]), 2)
+                elif pooling == 'mean':
+                    pooling_output = tf.reduce_mean(tf.squeeze(act_output, [-2]), 2)
+                else:
+                    raise Exception('pooling must in (max, mean)!')
+                pooling_outpouts.append(pooling_output)
+
+                scope.reuse_variables()
+        # [batch_size, sent_len, sum(nb_filter_list]
+        self._output = tf.concat(pooling_outpouts, axis=-1)
+
+    @property
+    def output(self):
+        return self._output
+
+    @property
+    def output_dim(self):
+        return sum(self._nb_filter_list)
+
+
 class SequenceLabelingModel(object):
 
     def __init__(self, sequence_length, nb_classes, nb_hidden=512, num_layers=1,
                  rnn_dropout=0., feature_names=None, feature_init_weight_dict=None,
                  feature_weight_shape_dict=None, feature_weight_dropout_dict=None,
                  dropout_rate=0., use_crf=True, path_model=None, nb_epoch=200,
-                 batch_size=128, train_max_patience=10, l2_rate=0.01,
-                 rnn_unit='lstm', learning_rate=0.001, clip=None):
+                 batch_size=128, train_max_patience=10, l2_rate=0.01, rnn_unit='lstm',
+                 learning_rate=0.001, clip=None, use_char_feature=False, word_length=None,
+                 conv_filter_size_list=None, conv_filter_len_list=None, cnn_dropout_rate=0.):
         """
         Args:
           sequence_length: int, 输入序列的padding后的长度
@@ -46,6 +131,9 @@ class SequenceLabelingModel(object):
           rnn_unit: str, lstm or gru
           learning_rate: float, default is 0.001
           clip: None or float, gradients clip
+          
+          use_char_feature: bool,是否使用字符特征
+          word_length: int, 单词长度
         """
         self._sequence_length = sequence_length
         self._nb_classes = nb_classes
@@ -72,12 +160,14 @@ class SequenceLabelingModel(object):
         self._learning_rate = learning_rate
         self._clip = clip
 
+        self._use_char_feature = use_char_feature
+        self._word_length = word_length
+        self._conv_filter_len_list = conv_filter_len_list
+        self._conv_filter_size_list = conv_filter_size_list
+        self._cnn_dropout_rate = cnn_dropout_rate
+
         assert len(feature_names) == len(list(set(feature_names))), \
             'duplication of feature names!'
-
-        self.build_model()
-
-    def build_model(self):
 
         # init ph, weights and dropout rate
         self.input_feature_ph_dict = dict()
@@ -89,6 +179,12 @@ class SequenceLabelingModel(object):
         # label ph
         self.input_label_ph = tf.placeholder(
             dtype=tf.int32, shape=[None, self._sequence_length], name='input_label_ph')
+        if self._use_char_feature:
+            self.cnn_dropout_rate_ph = tf.placeholder(tf.float32, name='cnn_dropout_rate_ph')
+
+        self.build_model()
+
+    def build_model(self):
         for feature_name in self._feature_names:
 
             # input ph
@@ -111,11 +207,23 @@ class SequenceLabelingModel(object):
                 self.feature_weight_dict[feature_name] = tf.Variable(
                     initial_value=self._feature_init_weight_dict[feature_name],
                     name='feature_weight_%s' % feature_name)
-            self.nil_vars.add(self.feature_weight_dict[feature_name].name)
+                self.nil_vars.add(self.feature_weight_dict[feature_name].name)
+            # char feature weights
+            if self._use_char_feature:
+                feature_weight = uniform_tensor(
+                    shape=self._feature_weight_shape_dict['char'], name='f_w_%s' % 'char')
+                self.feature_weight_dict['char'] = tf.Variable(
+                    initial_value=feature_weight, name='feature_weigth_%s' % 'char')
+                self.nil_vars.add(self.feature_weight_dict['char'].name)
 
             # init dropout rate, 初始化未指定的
             if feature_name not in self._feature_weight_dropout_dict:
                 self._feature_weight_dropout_dict[feature_name] = 0.
+        # char feature
+        if self._use_char_feature:
+            self.input_feature_ph_dict['char'] = tf.placeholder(
+                dtype=tf.int32, shape=[None, self._sequence_length, self._word_length],
+                name='input_feature_ph_%s' % 'char')
 
         # init embeddings
         self.embedding_features = []
@@ -127,10 +235,24 @@ class SequenceLabelingModel(object):
                 keep_prob=1.-self.weight_dropout_ph_dict[feature_name],
                 name='embedding_feature_dropout_%s' % feature_name)
             self.embedding_features.append(embedding_feature)
+        # char embedding
+        if self._use_char_feature:
+            char_embedding_feature = tf.nn.embedding_lookup(
+                self.feature_weight_dict['char'],
+                ids=self.input_feature_ph_dict['char'],
+                name='embedding_feature_%s' % 'char')
+            # conv
+            couv_feature_char = MultiConvolutional3D(
+                char_embedding_feature, filter_length_list=self._conv_filter_len_list,
+                nb_filter_list=self._conv_filter_size_list).output
+            couv_feature_char = tf.nn.dropout(
+                couv_feature_char, keep_prob=1-self.cnn_dropout_rate_ph)
 
         # concat all features
         input_features = self.embedding_features[0] if len(self.embedding_features) == 1 \
             else tf.concat(values=self.embedding_features, axis=2, name='input_features')
+        if self._use_char_feature:
+            input_features = tf.concat([input_features, couv_feature_char], axis=-1)
 
         # multi bi-lstm layer
         _fw_cells = []
@@ -154,8 +276,9 @@ class SequenceLabelingModel(object):
             keep_prob=1.-self.dropout_rate_ph, name='lstm_output_dropout')
 
         # softmax
-        self.outputs = tf.reshape(lstm_output, [-1, self._nb_hidden*2], name='outputs')
-        self.softmax_w = tf.get_variable('softmax_w', [self._nb_hidden*2, self._nb_classes])
+        hidden_size = int(lstm_output.shape[-1])
+        self.outputs = tf.reshape(lstm_output, [-1, hidden_size], name='outputs')
+        self.softmax_w = tf.get_variable('softmax_w', [hidden_size, self._nb_classes])
         self.softmax_b = tf.get_variable('softmax_b', [self._nb_classes])
         self.logits = tf.reshape(
             tf.matmul(self.outputs, self.softmax_w) + self.softmax_b,
@@ -248,6 +371,12 @@ class SequenceLabelingModel(object):
                     dropout_rate = self._feature_weight_dropout_dict[feature_name]
                     item = {self.weight_dropout_ph_dict[feature_name]: dropout_rate}
                     feed_dict.update(item)
+                if self._use_char_feature:
+                    batch_data = data_train_dict['char'][batch_indices]
+                    item = {self.input_feature_ph_dict['char']: batch_data}
+                    feed_dict.update(item)
+                    item = {self.cnn_dropout_rate_ph: self._cnn_dropout_rate}
+                    feed_dict.update(item)
                 feed_dict.update(
                     {
                         self.dropout_rate_ph: self._dropout_rate,
@@ -325,6 +454,12 @@ class SequenceLabelingModel(object):
                 # dropout
                 item = {self.weight_dropout_ph_dict[feature_name]: 0.}
                 feed_dict.update(item)
+            if self._use_char_feature:
+                batch_data = data_dict['char'][batch_indices]
+                item = {self.input_feature_ph_dict['char']: batch_data}
+                feed_dict.update(item)
+                item = {self.cnn_dropout_rate_ph: 0.}
+                feed_dict.update(item)
             feed_dict.update({self.dropout_rate_ph: 0., self.rnn_dropout_rate_ph: 0.})
             # label feed
             batch_label = data_dict['label'][batch_indices]
@@ -358,6 +493,12 @@ class SequenceLabelingModel(object):
                 feed_dict.update(item)
                 # dropout
                 item = {self.weight_dropout_ph_dict[feature_name]: 0.}
+                feed_dict.update(item)
+            if self._use_char_feature:
+                batch_data = data_test_dict['char'][batch_indices]
+                item = {self.input_feature_ph_dict['char']: batch_data}
+                feed_dict.update(item)
+                item = {self.cnn_dropout_rate_ph: 0.}
                 feed_dict.update(item)
             feed_dict.update({self.dropout_rate_ph: 0., self.rnn_dropout_rate_ph: 0.})
 
