@@ -208,19 +208,19 @@ class SequenceLabelingModel(object):
                     initial_value=self._feature_init_weight_dict[feature_name],
                     name='feature_weight_%s' % feature_name)
                 self.nil_vars.add(self.feature_weight_dict[feature_name].name)
-            # char feature weights
-            if self._use_char_feature:
-                feature_weight = uniform_tensor(
-                    shape=self._feature_weight_shape_dict['char'], name='f_w_%s' % 'char')
-                self.feature_weight_dict['char'] = tf.Variable(
-                    initial_value=feature_weight, name='feature_weigth_%s' % 'char')
-                self.nil_vars.add(self.feature_weight_dict['char'].name)
 
             # init dropout rate, 初始化未指定的
             if feature_name not in self._feature_weight_dropout_dict:
                 self._feature_weight_dropout_dict[feature_name] = 0.
         # char feature
         if self._use_char_feature:
+            # char feature weights
+            feature_weight = uniform_tensor(
+                shape=self._feature_weight_shape_dict['char'], name='f_w_%s' % 'char')
+            self.feature_weight_dict['char'] = tf.Variable(
+                initial_value=feature_weight, name='feature_weigth_%s' % 'char')
+            self.nil_vars.add(self.feature_weight_dict['char'].name)
+            self.nil_vars.add(self.feature_weight_dict['char'].name)
             self.input_feature_ph_dict['char'] = tf.placeholder(
                 dtype=tf.int32, shape=[None, self._sequence_length, self._word_length],
                 name='input_feature_ph_%s' % 'char')
@@ -355,7 +355,7 @@ class SequenceLabelingModel(object):
             shuffle_matrix(*data_list, seed=seed)
 
             # train
-            train_loss = 0.
+            train_loss, l2_loss = 0., 0.
             for i in tqdm(range(nb_train)):
                 feed_dict = dict()
                 batch_indices = np.arange(i * self._batch_size, (i + 1) * self._batch_size) \
@@ -386,14 +386,14 @@ class SequenceLabelingModel(object):
                 batch_label = data_train_dict['label'][batch_indices]
                 feed_dict.update({self.input_label_ph: batch_label})
 
-                _, loss = self.sess.run([self.train_op, self.loss], feed_dict=feed_dict)
+                _, loss, ls_loss = self.sess.run([self.train_op, self.loss, self.l2_loss], feed_dict=feed_dict)
                 train_loss += loss
             train_loss /= float(nb_train)
 
             # 计算在开发集上的loss
             dev_loss = self.evaluate(data_dev_dict)
 
-            print('train loss: %f, dev loss: %f' % (train_loss, dev_loss))
+            print('train loss: %f, dev loss: %f, l2 loss: %f' % (train_loss, dev_loss, l2_loss))
 
             # 根据dev上的表现保存模型
             if not self._path_model:
