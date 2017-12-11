@@ -1,5 +1,5 @@
 # NER-LSTM-CRF
-An easy-to-use named entity recognition (NER) toolkit, implemented the LSTM+CRF model in tensorflow.
+An easy-to-use named entity recognition (NER) toolkit, implemented the LSTM+\[CNN\]+CRF model in tensorflow.
 
 ## 1. Model
 Bi-LSTM/Bi-GRU + CRF.
