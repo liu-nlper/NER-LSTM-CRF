@@ -41,7 +41,7 @@ model_params:
   rnn_unit: lstm
   sequence_len_pt: 98
   sequence_length: 55
-  use_char_feature: true
+  use_char_feature: false
   conv_filter_size_list: [8, 8, 8, 8, 8]
   conv_filter_len_list: [1, 2, 3, 4, 5]
   conv_dropout: 0.2

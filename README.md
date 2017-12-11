@@ -27,6 +27,8 @@ Step 2: 以上样例数据中每行包含三列，分别称为`f1`、`f2`和`lab
 
 Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(即名称到编号id的映射字典)，改为相应的路径。
 
+**注**：处理中文时，将`char_feature`参数设为`false`；处理英文时，设为`true`。
+
 ### 2.3 预处理
     $ python/python3 preprocessing.py
 预处理后，会得到各个特征的item数以及label数，并自动修改`config.yml`文件中各个feature的`shape`参数，以及`nb_classes`参数；
@@ -94,5 +96,6 @@ Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(�
 - 参考论文：[http://www.aclweb.org/anthology/N16-1030](http://www.aclweb.org/anthology/N16-1030 "http://www.aclweb.org/anthology/N16-1030")
 - 参考项目：[https://github.com/koth/kcws](https://github.com/koth/kcws "https://github.com/koth/kcws") ; [https://github.com/chilynn/sequence-labeling](https://github.com/chilynn/sequence-labeling "https://github.com/chilynn/sequence-labeling")
 
-Updating:
-  添加计算转移矩阵的部分...
+待更新:
+  (1) 添加计算转移矩阵的部分；
+  (2) 分布式训练。
