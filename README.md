@@ -2,7 +2,7 @@
 An easy-to-use named entity recognition (NER) toolkit, implemented the LSTM+\[CNN\]+CRF model in tensorflow.
 
 ## 1. Model
-Bi-LSTM/Bi-GRU + CRF.
+Bi-LSTM/Bi-GRU + \[CNN\] + CRF，其中CNN层针对英文，捕获字符层面特征，通过参数`use_char_feature`控制。
 
 ## 2. Usage
 ### 2.1 数据准备
