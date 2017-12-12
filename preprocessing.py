@@ -57,8 +57,10 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
         items = line.split('\t')
         sequence_length += 1
         # print(items)
-        for i in range(len(items)):
+        for i in range(len(columns)-1):
             feature_item_dict_list[i][items[i]] += 1
+        # label
+        feature_item_dict_list[-1][items[-1]] += 1
         # char feature
         if use_char_featrue:
             for c in items[0]:
@@ -193,15 +195,15 @@ def main():
     for i, feature_name in enumerate(feature_names):
         if i == 0:
             config['model_params']['embed_params'][feature_name]['shape'] = \
-                [voc_sizes[i]+1, feature_dim_dict[feature_name]]
+                [voc_sizes[i], feature_dim_dict[feature_name]]
         else:
             config['model_params']['embed_params'][feature_name]['shape'] = \
-                [voc_sizes[i]+1, feature_dim_dict[feature_name]]
+                [voc_sizes[i], feature_dim_dict[feature_name]]
     # 修改char表的embedding
     if use_char_feature:
         # 默认16维，根据任务调整
         config['model_params']['embed_params']['char']['shape'] = \
-            [char_voc_size + 1, 16]
+            [char_voc_size, 16]
         config['model_params']['word_length'] = word_length
     # 修改句子长度
     config['model_params']['sequence_length'] = sequence_length
