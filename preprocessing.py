@@ -77,12 +77,13 @@ def build_vocabulary(path_data, path_vocs_dict, min_counts_dict, columns,
     voc_sizes = []
     if use_char_featrue:  # char feature
         size = create_dictionary(
-            char_dict, path_vocs_dict['char'], start=1,
+            char_dict, path_vocs_dict['char'], start=2,
             sort=True, min_count=min_counts_dict['char'], overwrite=True)
         voc_sizes.append(size)
     for i, name in enumerate(columns):
+        start = 1 if i == len(columns) - 1 else 2
         size = create_dictionary(
-            feature_item_dict_list[i], path_vocs_dict[name], start=1,
+            feature_item_dict_list[i], path_vocs_dict[name], start=start,
             sort=True, min_count=min_counts_dict[name], overwrite=True)
         print('voc: %s, size: %d' % (path_vocs_dict[name], size))
         voc_sizes.append(size)

@@ -99,7 +99,7 @@ def create_dictionary(token_dict, dic_path, start=0, sort=False,
     file = open(dic_path, 'wb')
     pickle.dump(voc, file)
     file.close()
-    return len(voc.keys())
+    return len(voc.keys()) + start
 
 
 def map_item2id(items, voc, max_len, none_word=1, lower=False, init_value=0, allow_error=True):

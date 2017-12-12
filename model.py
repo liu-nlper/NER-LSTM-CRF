@@ -39,10 +39,10 @@ class MultiConvolutional3D(object):
 
     def __init__(self, input_data, filter_length_list, nb_filter_list, padding='VALID',
                  activation='relu', pooling='max', name='Convolutional3D'):
-        """1D卷积层
+        """3D卷积层
         Args:
             input_data: 4D tensor of shape=[batch_size, sent_len, word_len, char_dim]
-                in_channels is set to 1 when use Convolutional1D.
+                in_channels is set to 1 when use Convolutional3D.
             filter_length_list: list of int, 卷积核的长度，用于构造卷积核，在
                 Convolutional1D中，卷积核shape=[filter_length, in_width, in_channels, nb_filters]
             nb_filter_list: list of int, 卷积核数量
