@@ -173,7 +173,7 @@ def main():
             voc = pickle.load(file_r)
         embedding_dict, vec_dim = load_embed_from_txt(path_pre_train)
         feature_dim_dict[feature_name] = vec_dim
-        embedding_matrix = np.zeros((len(voc.keys())+1, vec_dim), dtype='float32')
+        embedding_matrix = np.zeros((len(voc.keys())+2, vec_dim), dtype='float32')
         for item in voc:
             if item in embedding_dict:
                 embedding_matrix[voc[item], :] = embedding_dict[item]
