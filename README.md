@@ -87,7 +87,7 @@ Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(�
 
 ## 4. Requirements
 - numpy
-- tensorflow 1.2+
+- tensorflow 1.4
 - pickle
 - tqdm
 - yaml
