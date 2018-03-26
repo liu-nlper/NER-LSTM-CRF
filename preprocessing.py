@@ -190,7 +190,7 @@ def main():
     label_size = voc_sizes[-1]
     voc_sizes = voc_sizes[:-1]
     # 修改nb_classes
-    config['model_params']['nb_classes'] = label_size + 1
+    config['model_params']['nb_classes'] = label_size
     # 修改embedding表的shape
     for i, feature_name in enumerate(feature_names):
         if i == 0:
