@@ -131,7 +131,7 @@ class SequenceLabelingModel(object):
           rnn_unit: str, lstm or gru
           learning_rate: float, default is 0.001
           clip: None or float, gradients clip
-          
+
           use_char_feature: bool,是否使用字符特征
           word_length: int, 单词长度
         """
@@ -481,7 +481,7 @@ class SequenceLabelingModel(object):
         print('predicting...')
         data_count = data_test_dict[self._feature_names[0]].shape[0]
         nb_test = int(math.ceil(data_count / float(self._batch_size)))
-        viterbi_sequences = []  # 标记结果
+        result_sequences = []  # 标记结果
         for i in tqdm(range(nb_test)):
             feed_dict = dict()
             batch_indices = np.arange(i * self._batch_size, (i + 1) * self._batch_size) \
@@ -502,15 +502,23 @@ class SequenceLabelingModel(object):
                 feed_dict.update(item)
             feed_dict.update({self.dropout_rate_ph: 0., self.rnn_dropout_rate_ph: 0.})
 
-            logits, sequence_actual_length, transition_params = self.sess.run(
-                [self.logits, self.sequence_actual_length, self.transition_params], feed_dict=feed_dict)
-            for logit, seq_len in zip(logits, sequence_actual_length):
-                logit_actual = logit[:seq_len]
-                viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(
-                    logit_actual, transition_params)
-                viterbi_sequences.append(viterbi_sequence)
+            if self._use_crf:
+                logits, sequence_actual_length, transition_params = self.sess.run(
+                    [self.logits, self.sequence_actual_length, self.transition_params], feed_dict=feed_dict)
+                for logit, seq_len in zip(logits, sequence_actual_length):
+                    logit_actual = logit[:seq_len]
+                    viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(
+                        logit_actual, transition_params)
+                    result_sequences.append(viterbi_sequence)
+            else:
+                logits, sequence_actual_length = self.sess.run(
+                    [self.logits, self.sequence_actual_length], feed_dict=feed_dict)
+                for logit, seq_len in zip(logits, sequence_actual_length):
+                    logit_actual = logit[:seq_len]
+                    sequence = np.argmax(logit_actual, axis=-1)
+                    result_sequences.append(sequence)
         print('共标记句子数: %d' % data_count)
-        return viterbi_sequences
+        return result_sequences
 
     def compute_loss(self):
         """
