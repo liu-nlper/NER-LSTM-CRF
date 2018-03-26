@@ -524,7 +524,8 @@ class SequenceLabelingModel(object):
                 tf.contrib.layers.one_hot_encoding(
                     tf.reshape(self.input_label_ph, [-1]), num_classes=self._nb_classes),
                 shape=[-1, self._sequence_length, self._nb_classes])
-            cross_entropy = -tf.reduce_sum(labels * tf.log(self.logits), axis=2)
+            logits = tf.nn.softmax(self.logits, dim=-1)
+            cross_entropy = -tf.reduce_sum(labels * tf.log(logits), axis=2)
             mask = tf.sign(tf.reduce_max(tf.abs(labels), axis=2))
             cross_entropy_masked = tf.reduce_sum(
                 cross_entropy*mask, axis=1) / tf.cast(self.sequence_actual_length, tf.float32)
