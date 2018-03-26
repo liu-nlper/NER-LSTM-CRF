@@ -89,7 +89,7 @@ def main():
     saver.restore(model.sess, config['model_params']['path_model'])
 
     # 标记
-    viterbi_sequences = model.predict(data_dict)
+    result_sequences = model.predict(data_dict)
 
     # 写入文件
     label_voc = dict()
@@ -101,8 +101,8 @@ def main():
         config['data_params']['path_result'], 'w', encoding='utf-8')
     for i, sentence in enumerate(sentences):
         for j, item in enumerate(sentence.split('\n')):
-            if j < len(viterbi_sequences[i]):
-                file_result.write('%s\t%s\n' % (item, label_voc[viterbi_sequences[i][j]]))
+            if j < len(result_sequences[i]):
+                file_result.write('%s\t%s\n' % (item, label_voc[result_sequences[i][j]]))
             else:
                 file_result.write('%s\tO\n' % item)
         file_result.write('\n')
