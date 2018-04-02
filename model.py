@@ -386,7 +386,7 @@ class SequenceLabelingModel(object):
                 batch_label = data_train_dict['label'][batch_indices]
                 feed_dict.update({self.input_label_ph: batch_label})
 
-                _, loss, ls_loss = self.sess.run([self.train_op, self.loss, self.l2_loss], feed_dict=feed_dict)
+                _, loss, l2_loss = self.sess.run([self.train_op, self.loss, self.l2_loss], feed_dict=feed_dict)
                 train_loss += loss
             train_loss /= float(nb_train)
 
