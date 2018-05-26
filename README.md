@@ -96,4 +96,4 @@ Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(�
 - 参考论文：[http://www.aclweb.org/anthology/N16-1030](http://www.aclweb.org/anthology/N16-1030 "http://www.aclweb.org/anthology/N16-1030")
 - 参考项目：[https://github.com/koth/kcws](https://github.com/koth/kcws "https://github.com/koth/kcws") ; [https://github.com/chilynn/sequence-labeling](https://github.com/chilynn/sequence-labeling "https://github.com/chilynn/sequence-labeling")
 
-不再维护，PyTorch版本：[https://github.com/liu-nlper/SLTK](https://github.com/liu-nlper/SLTK)
+该项目不再维护，PyTorch版本：[https://github.com/liu-nlper/SLTK](https://github.com/liu-nlper/SLTK)
