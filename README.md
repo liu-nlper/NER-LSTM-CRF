@@ -1,6 +1,8 @@
 # NER-LSTM-CRF
 An easy-to-use named entity recognition (NER) toolkit, implemented the LSTM+\[CNN\]+CRF model in tensorflow.
 
+该项目短期内不再维护，PyTorch版本：[https://github.com/liu-nlper/SLTK](https://github.com/liu-nlper/SLTK)
+
 ## 1. Model
 Bi-LSTM/Bi-GRU + \[CNN\] + CRF，其中CNN层针对英文，捕获字符层面特征，通过参数`use_char_feature`控制self.nil_vars.add(self.feature_weight_dict[feature_name].name)。
 
@@ -95,5 +97,3 @@ Step 3: 修改`data_params`下的参数：该参数存放特征和label的voc(�
 ## 5. References
 - 参考论文：[http://www.aclweb.org/anthology/N16-1030](http://www.aclweb.org/anthology/N16-1030 "http://www.aclweb.org/anthology/N16-1030")
 - 参考项目：[https://github.com/koth/kcws](https://github.com/koth/kcws "https://github.com/koth/kcws") ; [https://github.com/chilynn/sequence-labeling](https://github.com/chilynn/sequence-labeling "https://github.com/chilynn/sequence-labeling")
-
-该项目不再维护，PyTorch版本：[https://github.com/liu-nlper/SLTK](https://github.com/liu-nlper/SLTK)
